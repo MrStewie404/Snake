@@ -1,7 +1,9 @@
 from time import sleep
 from os import system
+from os.path import exists
 import getch
 from random import randint
+import json
 
 class Snake:
     body = '◉'
@@ -9,15 +11,15 @@ class Snake:
     size = 1
 
     def __init__(self):
-        self.cell_pos = [[0, 0], [0, 1], [0, 2]]
-
+        self.cell_pos = [[0, 0]]
+        self.score = 0
 
     def move_snake(self):
         if len(self.cell_pos) < self.size:
             # self.cell_pos.append([0, 0])
             ...
 
-        for i in range(len(self.cell_pos)-1):
+        for i in range(len(self.cell_pos)):
             print(f'a: {self.cell_pos[-i]}')
             # self.cell_pos[self.size-2] = self.cell_pos[self.size-1]
 
@@ -70,11 +72,11 @@ class Screen:
 
     def __init__(self):
         system('clear')
-        print('Wait...')
+        print('Wait WASD...')
 
     def show(self, map) -> str:
         # Отрисовка карты
-        # system('clear')
+        system('clear')
         text = ' ' + '-'*self.width
         for i in range(self.height):
             text += '\n|'
@@ -83,7 +85,7 @@ class Screen:
             text += '|'
 
         text += '\n ' + '-'*self.width
-        print(f'Snake: {Snake.cell_pos[0]} | Food: {Map.food_pos} | Size: {Snake.size}\n{Snake.cell_pos}')
+        print(f'Snake: {Snake.cell_pos[0]} | Food: {Map.food_pos} | Score: {Snake.score}')
         return text
     
 
@@ -91,6 +93,7 @@ class Game:
 
     def __init__(self):
         self.pos = [0, 0]
+        self.file_name = 'save.json'
 
     def key_trigger(self, key):
         if len(key) > 1:
@@ -111,16 +114,30 @@ class Game:
         # print(self.pos)
         return self.pos
 
+    def save(self, score=0):
+        data = json.dumps({"score": score})
+        open(self.file_name, "w").write(data)
+
+    def load(self):
+        if exists(self.file_name):
+            file = open(self.file_name, "r").read()
+            data = json.loads(file)
+            Snake.score = data["score"]
+        else:
+            self.save()
+
     def master_process(self):
         try:
             if Snake.cell_pos[0] == Map.food_pos:
-                Snake.size += 1
-                Snake.cell_pos.append(Map.food_pos)
+                # Snake.size += 1
+                # Snake.cell_pos.append(Map.food_pos)
                 Map.insert_food()
+                Snake.score += 1
+                self.save(score = Snake.score)
             for i in range(Snake.size-1):
-                print(Snake.cell_pos[Snake.size-2])
-                Snake.cell_pos[Snake.size-2] = Snake.cell_pos[Snake.size-1]
-            
+                # print(Snake.cell_pos[Snake.size-2])
+                # Snake.cell_pos[Snake.size-2] = Snake.cell_pos[Snake.size-1]
+                ...
         except:
             ...
 
@@ -128,6 +145,7 @@ Map = Map()
 Screen = Screen()
 Snake = Snake()
 Game = Game()
+Game.load()
 
 Map.create_map()
 Map.insert_food()
@@ -138,7 +156,7 @@ while True:
     Game.key_trigger(key)
     Game.master_process()
     Game.pos_memory(Snake.cell_pos)
-    Snake.move_snake()
+    # Snake.move_snake()
     map = Map.insert_snake(Snake)
     # sleep(0)
     print(Screen.show(map))

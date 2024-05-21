@@ -101,13 +101,17 @@ class Game:
         else:
             ...
         if key == 's':
-            Snake.cell_pos[0][0] += 1
+            if Snake.cell_pos[0][0] != Map.height-1:
+                Snake.cell_pos[0][0] += 1
         elif key == 'w':
-            Snake.cell_pos[0][0] -= 1
+            if Snake.cell_pos[0][0] != 0:
+                Snake.cell_pos[0][0] -= 1
         elif key == 'd':
-            Snake.cell_pos[0][1] += 1
+            if Snake.cell_pos[0][1] != Map.width-1:
+                Snake.cell_pos[0][1] += 1
         elif key == 'a':
-            Snake.cell_pos[0][1] -= 1
+            if Snake.cell_pos[0][1] != 0:
+                Snake.cell_pos[0][1] -= 1
 
     def pos_memory(self, position):
         # self.pos.append(position[0])
@@ -155,8 +159,12 @@ while True:
     key = getch.getch()
     Game.key_trigger(key)
     Game.master_process()
-    Game.pos_memory(Snake.cell_pos)
+    #Game.pos_memory(Snake.cell_pos)
     # Snake.move_snake()
     map = Map.insert_snake(Snake)
     # sleep(0)
     print(Screen.show(map))
+    if Snake.score == 1000:
+        print('YOU WIN :)')
+        break
+

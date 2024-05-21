@@ -1,0 +1,96 @@
+from time import sleep
+from os import system
+import getch
+
+
+class Snake:
+    head = '@'
+    body = '*'
+    size = 1
+    cell_pos = [[0, 0]]
+
+    def __init__(self):
+        ...
+
+
+class Map:
+    width = 16
+    height = 16
+    cell = '#'
+    
+    def __init__(self):
+        ...
+       
+        
+    def create_map(self) -> list:
+        # Создание карты (массив)
+        self.map = [[]]
+        
+        for i in range(self.height):
+            for j in range(self.width):
+                self.map[i].append(self.cell)
+            self.map.append([])
+
+        return self.map
+
+
+    def insert_snake(self, snake):
+        for i in range(self.height):
+            for j in range(self.width):
+                if [i, j] in snake.cell_pos:
+                #for pos in snake.cell_pos:
+                    #self.map[pos[0]][pos[1]] = snake.body    
+                    self.map[snake.cell_pos[0][0]][snake.cell_pos[0][1]] = snake.head
+
+                else:
+                    self.map[i][j] = self.cell
+        return self.map
+
+
+class Screen:
+    width = 16
+    height = 16
+
+    def __init__(self):
+        system('clear')
+        print('Wait...')
+
+    def show(self, map) -> str:
+        # Отрисовка карты
+        system('clear')
+        text = ' ' + '-'*self.width
+        for i in range(self.height):
+            text += '\n|'
+            for j in range(self.width):
+                text += ''.join(map[i][j])
+            text += '|'
+
+        text += '\n ' + '-'*self.width
+        return text
+
+
+Map = Map()
+Screen = Screen()
+Snake = Snake()
+
+Map.create_map()
+
+
+while True:
+    key = getch.getch()
+    if len(key) > 1:
+        key = (key.split())[0]
+    else:
+        ...
+    if key == 's':
+        Snake.cell_pos[0][0] += 1
+    elif key == 'w':
+        Snake.cell_pos[0][0] -= 1
+    elif key == 'd':
+        Snake.cell_pos[0][1] += 1
+    elif key == 'a':
+        Snake.cell_pos[0][1] -= 1
+
+    map = Map.insert_snake(Snake)
+    sleep(0.1)
+    print(Screen.show(map))

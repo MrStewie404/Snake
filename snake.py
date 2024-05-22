@@ -7,22 +7,26 @@ import json
 
 class Snake:
     body = '◉'
-    head = '𖣯'
+    head = 'h'
     size = 1
 
     def __init__(self):
-        self.cell_pos = [[0, 0]]
+        self.cell_pos = [[1, 0], [0, 0]]
         self.score = 0
 
     def move_snake(self):
-        if len(self.cell_pos) < self.size:
-            # self.cell_pos.append([0, 0])
-            ...
+        if len(self.cell_pos)-1 < self.size:
+            self.cell_pos.append(Map.food_pos)
 
-        for i in range(len(self.cell_pos)):
-            print(f'a: {self.cell_pos[-i]}')
-            # self.cell_pos[self.size-2] = self.cell_pos[self.size-1]
+        else:
+            self.cell_pos = [self.cell_pos[0]] + self.cell_pos
+            cell_pos_local = self.cell_pos
+            for i in range(len(self.cell_pos)-1, -1, -1):
+                cell_pos_local[i] = cell_pos_local[i-1]
+            cell_pos_local = cell_pos_local[len(cell_pos_local)-1:]
 
+            self.cell_pos = cell_pos_local
+            # print(self.cell_pos[i], self.cell_pos[i-1])
 
 class Map:
     width = 10
@@ -33,7 +37,7 @@ class Map:
     
     def __init__(self):
         ...
-       
+      
     def create_map(self) -> list:
         # Создание карты (массив)
         self.map = [[]]
@@ -44,25 +48,27 @@ class Map:
             self.map.append([])
         return self.map
 
-    def insert_snake(self, snake):
+    def insert_snake(self):
+        for i in range(len(Snake.cell_pos)):
+            if i == 0:
+                self.map[Snake.cell_pos[i][0]][Snake.cell_pos[i][1]] = Snake.head
+            else:
+                self.map[Snake.cell_pos[i][0]][Snake.cell_pos[i][1]] = Snake.body
+
         for i in range(self.height):
             for j in range(self.width):
-                if [i, j] in snake.cell_pos:
-                    if [i, j] == snake.cell_pos[0]:
-                        self.map[snake.cell_pos[0][0]][snake.cell_pos[0][1]] = snake.body
-                else:
-                    if self.map[i][j] not in [self.cell, self.food]:
-                        self.map[i][j] = self.cell
+                if [i, j] not in [*Snake.cell_pos, self.food_pos]:
+                    self.map[i][j] = self.cell
+
         return self.map
     
     def insert_food(self):
-        for i in range(self.height-1):
-            for j in range(self.width-1):
-                if [i, j] == self.food:
-                    return
-
         self.food_pos = [randint(0, self.height-1), randint(0, self.width-1)]
-        self.map[self.food_pos[0]][self.food_pos[1]] = self.food
+        if self.map[self.food_pos[0]][self.food_pos[1]] in [Snake.head, Snake.body]:
+            self.insert_food()
+        else:
+            self.map[self.food_pos[0]][self.food_pos[1]] = self.food
+        
         return self.map
 
 
@@ -72,11 +78,13 @@ class Screen:
 
     def __init__(self):
         system('clear')
-        print('Wait WASD...')
+        print('\n' * int(self.height/2) + 
+            ' ' * int(self.width/2) + 
+            'Press WASD or arrow...')
 
     def show(self, map) -> str:
         # Отрисовка карты
-        system('clear')
+        # system('clear')
         text = ' ' + '-'*self.width
         for i in range(self.height):
             text += '\n|'
@@ -85,7 +93,8 @@ class Screen:
             text += '|'
 
         text += '\n ' + '-'*self.width
-        print(f'Snake: {Snake.cell_pos[0]} | Food: {Map.food_pos} | Score: {Snake.score}')
+        print(f'Snake: {Snake.cell_pos[0]} | Food: {Map.food_pos} | Score: {Snake.score} | Size: {Snake.size}\n' \
+                f'Cells: {Snake.cell_pos}')
         return text
     
 
@@ -100,23 +109,21 @@ class Game:
             key = (key.split())[0]
         else:
             ...
-        if key == 's':
+        if key in ['s', 'B']:
             if Snake.cell_pos[0][0] != Map.height-1:
                 Snake.cell_pos[0][0] += 1
-        elif key == 'w':
+        elif key in ['w', 'A']:
             if Snake.cell_pos[0][0] != 0:
                 Snake.cell_pos[0][0] -= 1
-        elif key == 'd':
+        elif key in ['d', 'C']:
             if Snake.cell_pos[0][1] != Map.width-1:
                 Snake.cell_pos[0][1] += 1
-        elif key == 'a':
+        elif key in ['a', 'D']:
             if Snake.cell_pos[0][1] != 0:
                 Snake.cell_pos[0][1] -= 1
-
-    def pos_memory(self, position):
-        # self.pos.append(position[0])
-        # print(self.pos)
-        return self.pos
+        else:
+            # print(f'Press unknown {key}')
+            ...
 
     def save(self, score=0):
         data = json.dumps({"score": score})
@@ -133,15 +140,11 @@ class Game:
     def master_process(self):
         try:
             if Snake.cell_pos[0] == Map.food_pos:
-                # Snake.size += 1
-                # Snake.cell_pos.append(Map.food_pos)
                 Map.insert_food()
                 Snake.score += 1
+                Snake.size += 1
                 self.save(score = Snake.score)
-            for i in range(Snake.size-1):
-                # print(Snake.cell_pos[Snake.size-2])
-                # Snake.cell_pos[Snake.size-2] = Snake.cell_pos[Snake.size-1]
-                ...
+            Snake.move_snake()
         except:
             ...
 
@@ -154,17 +157,13 @@ Game.load()
 Map.create_map()
 Map.insert_food()
 
-
 while True:
     key = getch.getch()
     Game.key_trigger(key)
     Game.master_process()
-    #Game.pos_memory(Snake.cell_pos)
-    # Snake.move_snake()
-    map = Map.insert_snake(Snake)
-    # sleep(0)
+    map = Map.insert_snake()
     print(Screen.show(map))
-    if Snake.score == 1000:
+    if Snake.score == 2500:
         print('YOU WIN :)')
         break
 
